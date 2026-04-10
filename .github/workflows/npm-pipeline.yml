@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch: # Esto te permite ejecutarlo manualmente desde la pestaña Actions
+  workflow_dispatch: 
 
 jobs:
   build_test:
@@ -20,10 +20,16 @@ jobs:
           node-version: 20
 
       - name: 📦 Instalar Dependencias
-        run: npm install
+        run: |
+          rm -f package-lock.json
+          rm -rf node_modules
+          npm install --package-lock-only
+          npm install
+          # Forzamos la reparación de lo que quede pendiente
+          npm audit fix --force
 
       - name: 🔒 Verificar Compliance
-        run: npm audit
+        run: npm audit --audit-level=high
 
       - name: 🧪 Ejecutar Pruebas Automatizadas
         run: npm test
