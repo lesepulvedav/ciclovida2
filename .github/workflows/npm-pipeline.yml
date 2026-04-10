@@ -1,35 +1,68 @@
-name: Build and Test
+name: CI/CD ECR Pipeline (Develop)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "develop" ] # 1. Adaptación de Triggers (Staging/Develop)
   pull_request:
-    branches: [ "main" ]
-  workflow_dispatch: 
+    branches: [ "develop" ]
+  workflow_dispatch:
 
 jobs:
-  build_test:
+  # Job 1: Pruebas y Seguridad (Se ejecuta siempre)
+  test_and_compliance:
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout del Código
         uses: actions/checkout@v4
 
-      - name: ⚙️ Configurar Node.js
+      - name: ⚙️ Configurar Node.js con Caché
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm' # 5.2 Caché de Dependencias Activado
 
       - name: 📦 Instalar Dependencias
-        run: |
-          rm -f package-lock.json
-          rm -rf node_modules
-          npm install --package-lock-only
-          npm install
-          # Forzamos la reparación de lo que quede pendiente
-          npm audit fix --force
+        run: npm install
 
       - name: 🔒 Verificar Compliance
         run: npm audit --audit-level=high
 
       - name: 🧪 Ejecutar Pruebas Automatizadas
         run: npm test
+
+  # Job 2: Construcción y Subida a ECR
+  build_and_push_ecr:
+    needs: test_and_compliance # Depende de que el Job 1 sea exitoso
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }} # 2. Condicional: NO corre en PRs
+
+    steps:
+      - name: ⬇️ Checkout del Código
+        uses: actions/checkout@v4
+
+      - name: 🔑 Configurar credenciales de AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }} # 3. Ajuste de Variables
+
+      - name: 🐳 Login a Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 🚀 Build, tag, and push (con Docker Cache)
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }} # 3. Ajuste de Variables
+          IMAGE_TAG: ${{ github.sha }}
+        # 5.3 Registry Cache Implementado (--cache-from y --build-arg BUILDKIT_INLINE_CACHE)
+        run: |
+          docker build \
+            --cache-from $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
