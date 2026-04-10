@@ -17,23 +17,25 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.7.9",
-    "express": "^4.21.2",
-    "lodash": "^4.17.21"
+    "axios": "1.7.9",
+    "express": "4.21.2",
+    "lodash": "4.17.21",
+    "moment": "2.30.1"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
-    "minimatch": "^3.1.5",
-    "brace-expansion": "^1.1.13"
+    "jest": "29.7.0",
+    "minimatch": "3.1.5",
+    "brace-expansion": "1.1.13"
   },
   "overrides": {
-    "axios": "$axios",
-    "lodash": "^4.17.21",
-    "path-to-regexp": "^0.1.13",
-    "qs": "^6.14.1",
-    "minimatch": "^3.1.5",
-    "brace-expansion": "^1.1.13",
-    "picomatch": "^4.0.1"
+    "axios": "1.7.9",
+    "lodash": "4.17.21",
+    "path-to-regexp": "0.1.13",
+    "qs": "6.14.1",
+    "minimatch": "3.1.5",
+    "brace-expansion": "1.1.13",
+    "picomatch": "4.0.1",
+    "moment": "2.30.1"
   },
-  "_comment_vulnerabilidad_resuelta": "Se añadió picomatch y se refinaron overrides para limpiar dependencias de desarrollo."
+  "_comment_fix": "Se agrega moment para corregir error en index.test.js y se fijan versiones en overrides."
 }
