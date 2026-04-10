@@ -23,8 +23,16 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "minimatch": "^3.1.3",
-    "brace-expansion": "^1.1.11"
+    "minimatch": "^3.1.5",
+    "brace-expansion": "^1.1.13"
   },
-  "_comment_vulnerabilidad_critica": "La versión 4.17.15 de lodash se utiliza intencionalmente para la simulación de fallos de npm audit."
+  "overrides": {
+    "axios": "^1.7.9",
+    "lodash": "^4.17.21",
+    "path-to-regexp": "^0.1.13",
+    "qs": "^6.14.1",
+    "minimatch": "^3.1.5",
+    "brace-expansion": "^1.1.13"
+  },
+  "_comment_vulnerabilidad_resuelta": "Se utiliza el bloque overrides para forzar versiones seguras en dependencias indirectas y pasar el npm audit."
 }
